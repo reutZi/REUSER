@@ -1,18 +1,21 @@
 from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Filters, MessageHandler
+
+from const import *
+from search_crawler_results import extract_data_from_file
 
 
 # Define a function to handle the '/start' command
 def start(update: Update, context):
     keyboard = [
-        [
-            InlineKeyboardButton("ריהוט בית וגינה", callback_data="furniture"),
-            InlineKeyboardButton("לתינוק ולילד", callback_data="children"),
-        ],
-        [
-            InlineKeyboardButton("מוצרי חשמל", callback_data="electronics"),
-            InlineKeyboardButton("אחר", callback_data="free_search"),
-        ],
+            [
+                InlineKeyboardButton(HOME_AND_GARDEN, callback_data="furniture"),
+                InlineKeyboardButton("לתינוק ולילד", callback_data="children"),
+            ],
+            [
+                InlineKeyboardButton("מוצרי חשמל", callback_data="electronics"),
+                InlineKeyboardButton("אחר", callback_data="free_search"),
+            ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     context.bot.send_message(
@@ -20,7 +23,6 @@ def start(update: Update, context):
         text="היי אני הREUSER ואני מבטיח חווית קניה מושלמת עבורך (: מה אתה מחפש? ",
         reply_markup=reply_markup
     )
-
 
 # Define a function to handle button clicks
 def button_click(update: Update, context):
@@ -30,17 +32,13 @@ def button_click(update: Update, context):
 
     if choice == "furniture":
         keyboard = [
-            [
-                InlineKeyboardButton("ספות", callback_data="sofa"),
-                InlineKeyboardButton("כיסאות", callback_data="chairs"),
-            ],
+              [
+                    InlineKeyboardButton("ספות", callback_data="sofa"),
+                    InlineKeyboardButton("כיסאות", callback_data="chairs"),
+              ],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        query.edit_message_text(text="בחר את סוג הספה הרצויה:", reply_markup=reply_markup)
-
-        # הוסף את הפונקציה handle_furniture_choice כפונקציה טפלנית לבחירת הרהוט
-        context.dispatcher.add_handler(CallbackQueryHandler(handle_furniture_choice))
-
+        query.edit_message_text(text="ריהוט בית וגינה:", reply_markup=reply_markup)
 
     elif choice == "children":
         keyboard = [
@@ -62,9 +60,8 @@ def button_click(update: Update, context):
         reply_markup = InlineKeyboardMarkup(keyboard)
         query.edit_message_text(text="מוצרי חשמל", reply_markup=reply_markup)
 
-
     elif choice == "free_search":
-        query.edit_message_text(text="הכנס את שם המוצר שאתה מחפש:")
+        query.edit_message_text(text="להיות ייחודי זה נפלא:), מה אתה מחפש?", reply_markup=None)
 
 
     else:
@@ -72,30 +69,35 @@ def button_click(update: Update, context):
         pass
 
 
-def handle_furniture_choice(update: Update, context: CallbackContext):
+def handle_message(update, context):
+    message_text = update.message.text
+    response_text = extract_data_from_file("data.csv", message_text).to_string()
+    context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
+
+def subcategory_selected(update: Update, context):
     query = update.callback_query
     query.answer()
-    choice = query.data
+    subcategory = query.data
 
-    if choice == "3sofa":
-        text = "בחרת ב-3 מושבים"
-        context.bot.send_message(chat_id=query.message.chat_id, text=text)
+    # Handle the selected subcategory
+    if subcategory == "subcategory_sofa":
+        response_text = "בחרת בתת-קטגורית ספה."
+    elif subcategory == "subcategory_cabinet":
+        response_text = "בחרת בתת-קטגורית ארון."
+    elif subcategory == "subcategory_chairs":
+        response_text = "בחרת בתת-קטגורית כיסאות."
+    elif subcategory == "subcategory_kitchen":
+        response_text = "בחרת בתת-קטגורית מטבח."
+    elif subcategory == "subcategory_rug":
+        response_text = "בחרת בתת-קטגורית שטיח."
+    elif subcategory == "subcategory_mattress":
+        response_text = "בחרת בתת-קטגורית מזרנים."
+    elif subcategory == "subcategory_garden":
+        response_text = "בחרת בתת-קטגורית ריהוט גינה."
+    else:
+        response_text = "תת-קטגוריה לא תקינה."
 
-    elif choice == "2chairs":
-        text = "בחרת ב-2 מושבים"
-        context.bot.send_message(chat_id=query.message.chat_id, text=text)
-
-    elif choice == "armchairs":
-        text = "בחרת בכורסאות"
-        context.bot.send_message(chat_id=query.message.chat_id, text=text)
-
-    # הוסיפי תנאים ופעולות נוספות עבור הבחירות הנוספות ב
-
-
-
-
-
-
+    query.edit_message_text(text=response_text)
 
 def main():
     # Initialize the bot
@@ -107,12 +109,17 @@ def main():
 
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CallbackQueryHandler(button_click))
-    # query.edit_message_text(text="הכנס את שם המוצר שאתה מחפש:")
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
 
     # Start the bot
     updater.start_polling()
     updater.idle()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
+
+
+
+
+
+
