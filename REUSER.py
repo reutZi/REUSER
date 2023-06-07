@@ -1,105 +1,3 @@
-# # from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
-# # from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-# # import ExcelTable
-# #
-# #
-# # # Define a function to handle the '/start' command
-# # def start(update: Update, context):
-# #     keyboard = [
-# #         [
-# #             InlineKeyboardButton("לקנות", url="https://t.me/my_REUSER_bot?start=buy"),
-# #         ]
-# #     ]
-# #     reply_markup = InlineKeyboardMarkup(keyboard)
-# #     context.bot.send_message(
-# #         chat_id=update.effective_chat.id,
-# #         text="הי! אני הREUSER, ואני כאן כדי לעזור לך למסור או לקבל חפצים יד שניה. אתה רוצה לקנות או למכור?",
-# #         reply_markup=reply_markup
-# #     )
-# #
-# # # Define a function to handle incoming messages
-# # def echo(update: Update, context):
-# #     message_text = update.message.text
-# #
-# #     if message_text.startswith('לקנות'):
-# #         response_text = "?מה תרצה לקנות"
-# #         context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
-# #     if message_text.startswith('למכור'):
-# #         response_text = "?מה תרצה למכור"
-# #         context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
-# #
-# #
-# # def main():
-# #     # Initialize the bot
-# #     bot = Bot(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM')
-# #     updater = Updater(bot=bot)
-# #
-# #     # Register handlers
-# #     dispatcher = updater.dispatcher
-# #     start_handler = CommandHandler('start', start)
-# #     echo_handler = MessageHandler(Filters.text & (~Filters.command), echo)
-# #     dispatcher.add_handler(start_handler)
-# #     dispatcher.add_handler(echo_handler)
-# #
-# #
-# #     # Start the bot
-# #     updater.start_polling()
-# #     updater.idle()
-# #
-# # if __name__ == '__main__':
-# #     main()
-# #
-#
-# from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
-# from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-#
-# # Define a function to handle the '/start' command
-# def start(update: Update, context):
-#     keyboard = [
-#         [
-#             InlineKeyboardButton("לקנות", url="https://t.me/my_REUSER_bot?start=buy"),
-#             InlineKeyboardButton("למכור", url="https://t.me/my_REUSER_bot?start=sell"),
-#         ]
-#     ]
-#     reply_markup = InlineKeyboardMarkup(keyboard)
-#     context.bot.send_message(
-#         chat_id=update.effective_chat.id,
-#         text="הי! אני הREUSER, ואני כאן כדי לעזור לך למסור או לקבל חפצים יד שניה. אתה רוצה לקנות או למכור?",
-#         reply_markup=reply_markup
-#     )
-#
-# # Define a function to handle incoming messages
-# def echo(update: Update, context):
-#     message_text = update.message.text
-#
-#     if message_text.startswith('לקנות'):
-#         response_text = "?מה תרצה לקנות"
-#         context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
-#     if message_text.startswith('למכור'):
-#         response_text = "?מה תרצה למכור"
-#         context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
-#
-#
-# def main():
-#     # Initialize the bot
-#     bot = Bot(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM')
-#     updater = Updater(bot=bot)
-#
-#     # Register handlers
-#     dispatcher = updater.dispatcher
-#     start_handler = CommandHandler('start', start)
-#     echo_handler = MessageHandler(Filters.text & (~Filters.command), echo)
-#     dispatcher.add_handler(start_handler)
-#     dispatcher.add_handler(echo_handler)
-#
-#     # Start the bot
-#     updater.start_polling()
-#     updater.idle()
-#
-# if __name__ == '__main__':
-#     main()
-#
-
 from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
@@ -150,7 +48,7 @@ def button_click(update: Update, context):
         # Handle other button clicks
         pass
 
-# Define a function to handle category selection
+
 def category_selected(update: Update, context):
     query = update.callback_query
     query.answer()
@@ -177,7 +75,6 @@ def category_selected(update: Update, context):
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         query.edit_message_text(text="בחר תת-קטגוריה:", reply_markup=reply_markup)
-
     else:
         response_text = "קטגוריה לא תקינה."
         query.edit_message_text(text=response_text)
@@ -207,6 +104,7 @@ def subcategory_selected(update: Update, context):
 
     query.edit_message_text(text=response_text)
 
+
 def main():
     # Initialize the bot
     bot = Bot(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM')
@@ -217,7 +115,7 @@ def main():
     start_handler = CommandHandler('start', start)
     button_click_handler = CallbackQueryHandler(button_click)
     category_selected_handler = CallbackQueryHandler(category_selected, pattern='^category_')
-    subcategory_selected_handler = CallbackQueryHandler(subcategory_selected, pattern='^subcategory_')
+    subcategory_selected_handler = CallbackQueryHandler(subcategory_selected, pattern='^category_')
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(button_click_handler)
     dispatcher.add_handler(category_selected_handler)
@@ -229,3 +127,86 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+#
+# #!/usr/bin/env python
+# # pylint: disable=unused-argument, wrong-import-position
+# # This program is dedicated to the public domain under the CC0 license.
+#
+# """
+# Basic example for a bot that uses inline keyboards. For an in-depth explanation, check out
+#  https://github.com/python-telegram-bot/python-telegram-bot/wiki/InlineKeyboard-Example.
+# """
+# import logging
+#
+# from telegram import __version__ as TG_VER
+#
+# try:
+#     from telegram import __version_info__
+# except ImportError:
+#     __version_info__ = (0, 0, 0, 0, 0)  # type: ignore[assignment]
+#
+# if __version_info__ < (20, 0, 0, "alpha", 1):
+#     raise RuntimeError(
+#         f"This example is not compatible with your current PTB version {TG_VER}. To view the "
+#         f"{TG_VER} version of this example, "
+#         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
+#     )
+# from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+# from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+#
+# # Enable logging
+# logging.basicConfig(
+#     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+# )
+# logger = logging.getLogger(__name__)
+#
+#
+# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     """Sends a message with three inline buttons attached."""
+#     keyboard = [
+#         [
+#             InlineKeyboardButton("Option 1", callback_data="1"),
+#             InlineKeyboardButton("Option 2", callback_data="2"),
+#         ],
+#         [InlineKeyboardButton("Option 3", callback_data="3")],
+#     ]
+#
+#     reply_markup = InlineKeyboardMarkup(keyboard)
+#
+#     await update.message.reply_text("Please choose:", reply_markup=reply_markup)
+#
+#
+# async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     """Parses the CallbackQuery and updates the message text."""
+#     query = update.callback_query
+#
+#     # CallbackQueries need to be answered, even if no notification to the user is needed
+#     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+#     await query.answer()
+#
+#     await query.edit_message_text(text=f"Selected option: {query.data}")
+#
+#
+# async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     """Displays info on how to use the bot."""
+#     await update.message.reply_text("Use /start to test this bot.")
+#
+#
+# def main() -> None:
+#     """Run the bot."""
+#     # Create the Application and pass it your bot's token.
+#     application = Application.builder().token("5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM").build()
+#
+#     application.add_handler(CommandHandler("start", start))
+#     application.add_handler(CallbackQueryHandler(button))
+#     application.add_handler(CommandHandler("help", help_command))
+#
+#     # Run the bot until the user presses Ctrl-C
+#     application.run_polling(allowed_updates=Update.ALL_TYPES)
+#
+#
+# if __name__ == "__main__":
+#     main()
+#
