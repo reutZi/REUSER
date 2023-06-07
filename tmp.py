@@ -16,8 +16,12 @@ bot.
 """
 
 import logging
+from urllib.error import URLError
+
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+
+from search_crawler_results import extract_data_from_file
 
 # Enable logging
 logging.basicConfig(
@@ -32,7 +36,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
     user = update.effective_user
     await update.message.reply_html(
-        rf"Hi {user.mention_html()}!",
+        rf" אני הREUSER. אשמח לעזור לך למצוא את המוצר שאתה צריך וביחד לשמור על העולם. מה אתה מחפש? {user.mention_html()} היי ",
         reply_markup=ForceReply(selective=True),
     )
 
@@ -43,8 +47,24 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Echo the user message."""
-    await update.message.reply_text(update.message.text)
+    keyword = update.message.text
+    products = extract_data_from_file("data.csv", keyword)
+
+    if products.empty:
+        await update.message.reply_text("No matching results were found for your request")
+    else:
+        for _, product in products.iterrows():
+            photo_url = product['image URL']
+            caption_text = f"Name: {product['name']}\nURL link: {product['URL link']}\nDate: {product['date']}\nOwner address: {product['owner address']}"
+
+            try:
+                # Send the photo with the caption to the user
+                await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
+            except URLError as e:
+                logger.error(f"Failed to send photo for '{product['name']}': {e}")
+            except Exception as e:
+                logger.error(f"An error occurred while sending photo: {e}")
+
 
 
 def main() -> None:

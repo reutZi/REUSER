@@ -1,5 +1,5 @@
 from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Filters, MessageHandler
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, filters, MessageHandler, Application
 
 from const import *
 from search_crawler_results import extract_data_from_file
@@ -101,19 +101,28 @@ def subcategory_selected(update: Update, context):
 
 def main():
     # Initialize the bot
-    bot = Bot(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM')
-    updater = Updater(bot=bot)
+    # bot = Bot(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM')
+    # updater = Updater(bot, update_queue=None)
+    #
+    # # Register handlers
+    # dispatcher = updater.dispatcher
+    #
+    # dispatcher.add_handler(CommandHandler('start', start))
+    # dispatcher.add_handler(CallbackQueryHandler(button_click))
+    # dispatcher.add_handler(MessageHandler(filters.text, handle_message))
+    #
+    # # Start the bot
+    # updater.start_polling()
+    # updater.idle()
 
-    # Register handlers
-    dispatcher = updater.dispatcher
+    app = Application.builder().token('5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM').build()
 
-    dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(CallbackQueryHandler(button_click))
-    dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+    app.add_handler(CommandHandler('start', start))
+    app.add_handler(CallbackQueryHandler(button_click))
+    app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-    # Start the bot
-    updater.start_polling()
-    updater.idle()
+    # Run the bot until the user presses Ctrl-C
+    app.run_polling()
 
 if __name__ == '__main__':
     main()
