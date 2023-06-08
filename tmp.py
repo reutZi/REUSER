@@ -110,6 +110,8 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
 
     option_selected = query.data
 
+    keyboard = [[]]
+
     # Handle different options
     if option_selected == "category2":
         keyboard = [
