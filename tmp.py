@@ -21,6 +21,7 @@ from urllib.error import URLError
 from telegram import ForceReply, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, CallbackQueryHandler
 
+from consts import *
 from search_crawler_results import extract_data_from_file
 
 # Enable logging
@@ -30,70 +31,77 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     """Send a message when the command /start is issued."""
-#     user = update.effective_user
-#     await update.message.reply_html(
-#         rf"Hi {user.mention_html()}!",
-#         reply_markup=ForceReply(selective=True),
-#     )
-
-
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
     await update.message.reply_text("Help!")
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    userText = update.message.text
+    if isCity(userText):
+        await getOptions(update, context)
+        return
+
     keyword = update.message.text
     products = extract_data_from_file("data.csv", keyword)
+    products_length = len(products)
 
     if products.empty:
-        await update.message.reply_text("No matching results were found for your request")
+        await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
     else:
-        for _, product in products.iterrows():
-            photo_url = product['image URL']
-            caption_text = f"Name: {product['name']}\nURL link: {product['URL link']}\nDate: {product['date']}\nOwner address: {product['owner address']}"
+        if len(products) > 0:
+            await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
+        else:
+            await update.message.reply_text("התוצאה הרלוונטית ביותר עבורך:")
 
-            try:
-                # Send the photo with the caption to the user
-                await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
-            except URLError as e:
-                logger.error(f"Failed to send photo for '{product['name']}': {e}")
-            except Exception as e:
-                logger.error(f"An error occurred while sending photo: {e}")
+    for _, product in products.iterrows():
+        photo_url = product['image URL']
+        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+
+        # Send the photo with the caption to the user
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-
     user = update.effective_user
     await update.message.reply_html(
-               rf"שלום {user.mention_html()}!",
-               reply_markup=ForceReply(selective=True),)
+        rf"שלום {user.mention_html()}!",
+        reply_markup=ForceReply(selective=True),
+    )
 
+    message_text = "ברוך הבא לREUSER!♻️\n\nביחד נשמור על הסביבה❤️\n\nשלב ראשון הכנס את מקום מגוריך\nכדי שאוכל להביא לך את התוצאות\nהטובות ביותר עבורך!"
+    await update.message.reply_text(message_text)
+
+    #reply = await context.bot.await_reply(update, timeout=None)
+
+
+def isCity(city_name):
+    with open('cities.txt', 'r', encoding='utf-8') as file:
+        cities = file.read().splitlines()
+        if city_name in cities:
+            return True
+        else:
+            return False
+
+
+async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [
-            InlineKeyboardButton("ספות", callback_data="category1"),
-            InlineKeyboardButton("שולחנות", callback_data="category2"),
+            InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
+            InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
         ],
         [
-            InlineKeyboardButton("ארונות", callback_data="category3"),
-            InlineKeyboardButton("כסאות", callback_data="category4"),
+            InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
+            InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
         ],
         [
-            InlineKeyboardButton("אחר", callback_data="category5"),
+            InlineKeyboardButton("אחר", callback_data="other"),
         ],
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    emoji_recycle = "♻️"
-    emoji_heart = "❤️"
-    message_text = "ברוך הבא לREUSER! " + emoji_recycle + "\n\nאשמח לעזור לך למצוא את המוצר הכי טוב עבורך!\n" + " " + emoji_heart + "ביחד נשמור על הסביבה\n\nתבחר את הקטגוריה המתאימה עבורך:"
-
-    await update.message.reply_html(message_text,reply_markup=reply_markup,)
+    await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
 
 
 async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -103,25 +111,32 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     option_selected = query.data
 
     # Handle different options
-    if option_selected == "category1":
+    if option_selected == "category2":
         keyboard = [
             [
-                InlineKeyboardButton("אפשרות 1", callback_data="option1"),
-                InlineKeyboardButton("אפשרות 2", callback_data="option2"),
+                InlineKeyboardButton("ספות", callback_data="option1"),
+                InlineKeyboardButton("שולחנות", callback_data="option2"),
+                InlineKeyboardButton("ארונות", callback_data="option3"),
+                InlineKeyboardButton("כיסאות", callback_data="option4")
             ],
         ]
-    elif option_selected == "category2":
+
+    elif option_selected == "category1":
         keyboard = [
             [
-                InlineKeyboardButton("אפשרות 3", callback_data="option3"),
-                InlineKeyboardButton("אפשרות 4", callback_data="option4"),
+                InlineKeyboardButton("תנורים", callback_data="option3"),
+                InlineKeyboardButton("מיקרוגל", callback_data="option5"),
+                InlineKeyboardButton("בלנדרים", callback_data="option6"),
+                InlineKeyboardButton("מקררים", callback_data="option7"),
             ],
         ]
     elif option_selected == "category3":
         keyboard = [
             [
-                InlineKeyboardButton("אפשרות 5", callback_data="option5"),
-                InlineKeyboardButton("אפשרות 6", callback_data="option6"),
+                InlineKeyboardButton("מחשבים", callback_data="option8"),
+                InlineKeyboardButton("מדפסות", callback_data="option9"),
+                InlineKeyboardButton("מדפסות", callback_data="option10"),
+                InlineKeyboardButton("סוללות", callback_data="option11"),
             ],
         ]
     elif option_selected == "category4":
@@ -131,21 +146,17 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
                 InlineKeyboardButton("אפשרות 8", callback_data="option8"),
             ],
         ]
-    elif option_selected == "category5":
+    elif option_selected == "other":
         await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
-        # נחכה לתשובה של המשתמש
-        context.bot.register_next_step_handler(query.message, handle_user_response)
-
-    else:
-        # Handle other options
         return
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.message.reply_html(
-        rf"Option '{option_selected}' selected by {user.mention_html()}",
+        rf"בחר את המוצר אותו אתה מחפש:",
         reply_markup=reply_markup,
     )
+
 
 
 async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -154,10 +165,10 @@ async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAUL
 
     option_selected = query.data
 
-    # Handle different options
+    # Handle different option
     if option_selected == "option1":
         # Handle Option 1
-        await query.message.reply_text("You selected Option 1")
+        await query.message.reply_text("עובדדד1")
     elif option_selected == "option2":
         # Handle Option 2
         await query.message.reply_text("You selected Option 2")
@@ -189,10 +200,6 @@ async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAUL
         # Handle other options
         return
 
-async def handle_user_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_response = update.message.text
-    await update.message.reply_text(f"תודה על תשובתך: {user_response}")
-
 
 def main() -> None:
     """Start the bot."""
@@ -205,9 +212,6 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_button_selection))
     application.add_handler(CallbackQueryHandler(handle_additional_buttons))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    # on non command i.e message - echo the message on Telegram
-    #application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
