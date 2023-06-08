@@ -74,7 +74,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         photo_url = product['image URL']
         caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
 
-        # Send the photo with the caption to the user
+        #Send the photo with the caption to the user
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
 
 
