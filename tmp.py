@@ -67,7 +67,6 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
         # Send the photo with the caption to the user
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
