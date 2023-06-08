@@ -24,7 +24,7 @@ from telegram import ForceReply, Update, InlineKeyboardMarkup, InlineKeyboardBut
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, CallbackQueryHandler
 
 from consts import *
-from search_crawler_results import read_excel_to_list
+from search_crawler_results import extract_data_from_file
 
 # Enable logging
 logging.basicConfig(
@@ -47,7 +47,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
         await getOptions(update, context)
         return
 
-    products = read_excel_to_list(FILE_PATH, userText)
+    products = extract_data_from_file("data.csv", userText)
     products_length = len(products)
 
     if products.empty:
@@ -60,9 +60,10 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
         else:
             await update.message.reply_text("התוצאה הרלוונטית ביותר עבורך:")
 
-    for product in products:
-        photo_url = product[1]
-        caption_text = f"{product[0]}\n{PRICE}{product[4]}\n{LINK_URL} {product[2]}\n{DATE} {product[3]}\n{OWNER_ADDRESS} {product[6]}\n{OWNER_PHONE} {product[5]}"
+    for _, product in products.iterrows():
+        photo_url = product['image URL']
+        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+
         # Send the photo with the caption to the user
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
 
@@ -146,8 +147,8 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     elif option_selected == "category4":
         keyboard = [
             [
-                InlineKeyboardButton("בגדים", callback_data="option12"),
-                InlineKeyboardButton("עגלות", callback_data="option13"),
+                InlineKeyboardButton("אפשרות 7", callback_data="option7"),
+                InlineKeyboardButton("אפשרות 8", callback_data="option8"),
             ],
         ]
     elif option_selected == "category5":
@@ -196,14 +197,6 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         # Handle Option 10
         send_images("תנור", query)
         return
-    elif option_selected == "option12":
-        # Handle Option 10
-        send_images("עריסה", query)
-        return
-    elif option_selected == "option13":
-        # Handle Option 10
-        send_images("עגלה", query)
-        return
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -213,10 +206,10 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     )
 
 def send_images(text, query):
-    products = read_excel_to_list(FILE_PATH, text)
+    products = extract_data_from_file("data.csv", text)
     products_length = len(products)
 
-    if products_length == 0:
+    if products.empty:
         text_message =  "לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית."
     else:
        if len(products) > 1:
@@ -227,9 +220,10 @@ def send_images(text, query):
     send_message(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id=query.message.chat_id,
                         text=text_message)
 
-    for product in products:
-        photo_url = product[1]
-        caption_text = f"{product[0]}\n{PRICE}{product[4]}\n{LINK_URL} {product[2]}\n{DATE} {product[3]}\n{OWNER_ADDRESS} {product[6]}\n{OWNER_PHONE} {product[5]}"
+
+    for _, product in products.iterrows():
+        photo_url = product['image URL']
+        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
         photo_data = requests.get(photo_url).content
         send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id= query.message.chat_id,
                    photo=photo_data, caption=caption_text)
