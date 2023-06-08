@@ -16,8 +16,12 @@ bot.
 """
 
 import logging
+from urllib.error import URLError
+
 from telegram import ForceReply, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, CallbackQueryHandler
+
+from search_crawler_results import extract_data_from_file
 
 # Enable logging
 logging.basicConfig(
@@ -43,8 +47,23 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Echo the user message."""
-    await update.message.reply_text(update.message.text)
+    keyword = update.message.text
+    products = extract_data_from_file("data.csv", keyword)
+
+    if products.empty:
+        await update.message.reply_text("No matching results were found for your request")
+    else:
+        for _, product in products.iterrows():
+            photo_url = product['image URL']
+            caption_text = f"Name: {product['name']}\nURL link: {product['URL link']}\nDate: {product['date']}\nOwner address: {product['owner address']}"
+
+            try:
+                # Send the photo with the caption to the user
+                await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
+            except URLError as e:
+                logger.error(f"Failed to send photo for '{product['name']}': {e}")
+            except Exception as e:
+                logger.error(f"An error occurred while sending photo: {e}")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -53,8 +72,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_html(
                rf"שלום {user.mention_html()}!",
                reply_markup=ForceReply(selective=True),)
-
-
 
     keyboard = [
         [
@@ -77,12 +94,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message_text = "ברוך הבא לREUSER! " + emoji_recycle + "\n\nאשמח לעזור לך למצוא את המוצר הכי טוב עבורך!\n" + " " + emoji_heart + "ביחד נשמור על הסביבה\n\nתבחר את הקטגוריה המתאימה עבורך:"
 
     await update.message.reply_html(message_text,reply_markup=reply_markup,)
-
-
-    # await update.message.reply_html(
-    #     "שלום משתמש, תבחר קטגוריה:",
-    #     reply_markup=reply_markup,
-    # )
 
 
 async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -193,10 +204,10 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(handle_button_selection))
     application.add_handler(CallbackQueryHandler(handle_additional_buttons))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_response))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # on non command i.e message - echo the message on Telegram
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    #application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
