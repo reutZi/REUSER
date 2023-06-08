@@ -72,7 +72,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message_text = "ברוך הבא לREUSER!♻️\n\nביחד נשמור על הסביבה❤️\n\nשלב ראשון הכנס את מקום מגוריך\nכדי שאוכל להביא לך את התוצאות\nהטובות ביותר עבורך!"
     await update.message.reply_text(message_text)
 
-    #reply = await context.bot.await_reply(update, timeout=None)
+    reply = await context.bot.await_reply(update, timeout=None)
 
 
 def isCity(city_name):
@@ -120,7 +120,6 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
                 InlineKeyboardButton("כיסאות", callback_data="option4")
             ],
         ]
-
     elif option_selected == "category1":
         keyboard = [
             [
@@ -146,7 +145,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
                 InlineKeyboardButton("אפשרות 8", callback_data="option8"),
             ],
         ]
-    elif option_selected == "other":
+    elif option_selected == "category5":
         await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
         return
 
@@ -157,6 +156,8 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         reply_markup=reply_markup,
     )
 
+    await handle_additional_buttons(update,context)
+
 
 
 async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -165,10 +166,10 @@ async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAUL
 
     option_selected = query.data
 
-    # Handle different option
+    # Handle different options
     if option_selected == "option1":
         # Handle Option 1
-        await query.message.reply_text("עובדדד1")
+        await query.message.reply_text("You selected Option 1")
     elif option_selected == "option2":
         # Handle Option 2
         await query.message.reply_text("You selected Option 2")
@@ -199,6 +200,7 @@ async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAUL
     else:
         # Handle other options
         return
+
 
 
 def main() -> None:
