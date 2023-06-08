@@ -39,7 +39,23 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     userText = update.message.text
     if isCity(userText):
-        await getOptions(update, context)
+        keyboard = [
+            [
+                InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
+                InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
+            ],
+            [
+                InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
+                InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
+            ],
+            [
+                InlineKeyboardButton("אחר", callback_data="other"),
+            ],
+        ]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
         return
 
     keyword = update.message.text
@@ -49,7 +65,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if products.empty:
         await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
     else:
-        if len(products) > 0:
+        if len(products) > 1:
             await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
         else:
             await update.message.reply_text("התוצאה הרלוונטית ביותר עבורך:")
@@ -66,7 +82,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
         rf"שלום {user.mention_html()}!",
-        reply_markup=ForceReply(selective=True),
+        #reply_markup=ForceReply(selective=True),
     )
 
     message_text = "ברוך הבא לREUSER!♻️\n\nביחד נשמור על הסביבה❤️\n\nשלב ראשון הכנס את מקום מגוריך\nכדי שאוכל להביא לך את התוצאות\nהטובות ביותר עבורך!"
@@ -84,24 +100,24 @@ def isCity(city_name):
             return False
 
 
-async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [
-            InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
-            InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
-        ],
-        [
-            InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
-            InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
-        ],
-        [
-            InlineKeyboardButton("אחר", callback_data="other"),
-        ],
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
+# async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     keyboard = [
+#         [
+#             InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
+#             InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
+#         ],
+#         [
+#             InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
+#             InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
+#         ],
+#         [
+#             InlineKeyboardButton("אחר", callback_data="other"),
+#         ],
+#     ]
+#
+#     reply_markup = InlineKeyboardMarkup(keyboard)
+#
+#     await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
 
 
 async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -110,7 +126,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
 
     option_selected = query.data
 
-    keyboard = [[]]
+    #keyboard = [[]]
 
     # Handle different options
     if option_selected == "category2":
@@ -205,6 +221,7 @@ async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAUL
 
 
 
+
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
@@ -214,7 +231,7 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(handle_button_selection))
-    application.add_handler(CallbackQueryHandler(handle_additional_buttons))
+    #application.add_handler(CallbackQueryHandler(handle_additional_buttons))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
