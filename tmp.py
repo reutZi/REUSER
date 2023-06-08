@@ -71,6 +71,7 @@ def isCity(city_name):
             return False
 
 
+
 async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [
