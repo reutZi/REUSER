@@ -26,6 +26,8 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 from consts import *
 from search_crawler_results import extract_data_from_file
 
+
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -51,9 +53,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
     products_length = len(products)
 
     if products.empty:
-        await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
-
-        #await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
+        await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
     else:
         if len(products) > 1:
             await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
@@ -147,8 +147,8 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     elif option_selected == "category4":
         keyboard = [
             [
-                InlineKeyboardButton("אפשרות 7", callback_data="option7"),
-                InlineKeyboardButton("אפשרות 8", callback_data="option8"),
+                InlineKeyboardButton("עריסות", callback_data="option12"),
+                InlineKeyboardButton("עגלות וטיולונים", callback_data="option13"),
             ],
         ]
     elif option_selected == "category5":
@@ -197,6 +197,18 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         # Handle Option 10
         send_images("תנור", query)
         return
+    elif option_selected == "option12":
+        # Handle Option 10
+        send_images("עריסה", query)
+        return
+    elif option_selected == "option13":
+        # Handle Option 10
+        send_images("עגלה", query)
+        return
+
+    else:
+        await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
+        return
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -219,7 +231,6 @@ def send_images(text, query):
 
     send_message(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id=query.message.chat_id,
                         text=text_message)
-
 
     for _, product in products.iterrows():
         photo_url = product['image URL']
