@@ -56,7 +56,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=ForceReply(selective=True),
     )
 
-    message_text = "ברוך הבא לREUSER!♻️\n\nביחד נשמור על הסביבה❤️\n\nשלב ראשון הכנס את מקום מגוריך\nכדי שאוכל להביא לך את התוצאות\nהטובות ביותר עבורך!"
+    message_text = f"\n{O1}{O2}\n\n{O3}\n\n{O4}\n\n{O5}\n{O6}"
     await update.message.reply_text(message_text)
 
     reply = await context.bot.await_reply(update, timeout=None)
