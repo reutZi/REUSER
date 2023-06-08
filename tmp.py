@@ -18,6 +18,8 @@ bot.
 import logging
 from urllib.error import URLError
 
+import requests
+from telebot.apihelper import send_photo, send_message
 from telegram import ForceReply, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, CallbackQueryHandler
 
@@ -36,34 +38,22 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text("Help!")
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    userText = update.message.text
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) -> None:
+    if(text == None):
+        userText = update.message.text
+    else:
+        userText = text
     if isCity(userText):
-        keyboard = [
-            [
-                InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
-                InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
-            ],
-            [
-                InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
-                InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
-            ],
-            [
-                InlineKeyboardButton("אחר", callback_data="other"),
-            ],
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
+        await getOptions(update, context)
         return
 
-    keyword = update.message.text
-    products = extract_data_from_file("data.csv", keyword)
+    products = extract_data_from_file("data.csv", userText)
     products_length = len(products)
 
     if products.empty:
-        await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
+        await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
+
+        #await update.message.reply_text("לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית.")
     else:
         if len(products) > 1:
             await update.message.reply_text(f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: ")
@@ -74,7 +64,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         photo_url = product['image URL']
         caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
 
-        #Send the photo with the caption to the user
+        # Send the photo with the caption to the user
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
 
 
@@ -82,7 +72,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
         rf"שלום {user.mention_html()}!",
-        #reply_markup=ForceReply(selective=True),
+        reply_markup=ForceReply(selective=True),
     )
 
     message_text = "ברוך הבא לREUSER!♻️\n\nביחד נשמור על הסביבה❤️\n\nשלב ראשון הכנס את מקום מגוריך\nכדי שאוכל להביא לך את התוצאות\nהטובות ביותר עבורך!"
@@ -100,24 +90,24 @@ def isCity(city_name):
             return False
 
 
-# async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     keyboard = [
-#         [
-#             InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
-#             InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
-#         ],
-#         [
-#             InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
-#             InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
-#         ],
-#         [
-#             InlineKeyboardButton("אחר", callback_data="other"),
-#         ],
-#     ]
-#
-#     reply_markup = InlineKeyboardMarkup(keyboard)
-#
-#     await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
+async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    keyboard = [
+        [
+            InlineKeyboardButton("מוצרי חשמל", callback_data="category1"),
+            InlineKeyboardButton("ריהוט לבית ולגינה", callback_data="category2"),
+        ],
+        [
+            InlineKeyboardButton("מחשבים וציוד נלווה", callback_data="category3"),
+            InlineKeyboardButton("לתינוק ולילד", callback_data="category4"),
+        ],
+        [
+            InlineKeyboardButton("אחר", callback_data="other"),
+        ],
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
 
 
 async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -126,7 +116,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
 
     option_selected = query.data
 
-    #keyboard = [[]]
+    keyboard = [[]]
 
     # Handle different options
     if option_selected == "category2":
@@ -141,7 +131,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     elif option_selected == "category1":
         keyboard = [
             [
-                InlineKeyboardButton("תנורים", callback_data="option3"),
+                InlineKeyboardButton("תנורים", callback_data="option11"),
                 InlineKeyboardButton("מיקרוגל", callback_data="option5"),
                 InlineKeyboardButton("בלנדרים", callback_data="option6"),
                 InlineKeyboardButton("מקררים", callback_data="option7"),
@@ -152,8 +142,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
             [
                 InlineKeyboardButton("מחשבים", callback_data="option8"),
                 InlineKeyboardButton("מדפסות", callback_data="option9"),
-                InlineKeyboardButton("מדפסות", callback_data="option10"),
-                InlineKeyboardButton("סוללות", callback_data="option11"),
+                InlineKeyboardButton("סוללות", callback_data="option10"),
             ],
         ]
     elif option_selected == "category4":
@@ -166,6 +155,49 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
     elif option_selected == "category5":
         await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
         return
+    elif option_selected == "option1":
+        send_images("ספת", query)
+        return
+    elif option_selected == "option2":
+        # Handle Option 2
+        send_images("שולחן", query)
+        return
+    elif option_selected == "option3":
+        # Handle Option 3
+        send_images("ארון", query)
+        return
+    elif option_selected == "option4":
+        # Handle Option 4
+        send_images("כסא", query)
+        return
+    elif option_selected == "option5":
+        # Handle Option 5
+        send_images("מיקרוגל", query)
+        return
+    elif option_selected == "option6":
+        # Handle Option 6
+        send_images("בלנדר", query)
+        return
+    elif option_selected == "option7":
+        # Handle Option 7
+        send_images("מקרר", query)
+        return
+    elif option_selected == "option8":
+        # Handle Option 8
+        send_images("מחשב", query)
+        return
+    elif option_selected == "option9":
+        # Handle Option 9
+        send_images("מדפסת", query)
+        return
+    elif option_selected == "option10":
+        # Handle Option 10
+        send_images("סוללות", query)
+        return
+    elif option_selected == "option11":
+        # Handle Option 10
+        send_images("תנור", query)
+        return
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -174,53 +206,28 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         reply_markup=reply_markup,
     )
 
-    await handle_additional_buttons(update,context)
+def send_images(text, query):
+    products = extract_data_from_file("data.csv", text)
+    products_length = len(products)
 
-
-
-async def handle_additional_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    user = query.from_user
-
-    option_selected = query.data
-
-    # Handle different options
-    if option_selected == "option1":
-        # Handle Option 1
-        await query.message.reply_text("You selected Option 1")
-    elif option_selected == "option2":
-        # Handle Option 2
-        await query.message.reply_text("You selected Option 2")
-    elif option_selected == "option3":
-        # Handle Option 3
-        await query.message.reply_text("You selected Option 3")
-    elif option_selected == "option4":
-        # Handle Option 4
-        await query.message.reply_text("You selected Option 4")
-    elif option_selected == "option5":
-        # Handle Option 5
-        await query.message.reply_text("You selected Option 5")
-    elif option_selected == "option6":
-        # Handle Option 6
-        await query.message.reply_text("You selected Option 6")
-    elif option_selected == "option7":
-        # Handle Option 7
-        await query.message.reply_text("You selected Option 7")
-    elif option_selected == "option8":
-        # Handle Option 8
-        await query.message.reply_text("You selected Option 8")
-    elif option_selected == "option9":
-        # Handle Option 9
-        await query.message.reply_text("You selected Option 9")
-    elif option_selected == "option10":
-        # Handle Option 10
-        await query.message.reply_text("You selected Option 10")
+    if products.empty:
+        text_message =  "לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית."
     else:
-        # Handle other options
-        return
+       if len(products) > 1:
+           text_message = f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: "
+       else:
+           text_message = "התוצאה הרלוונטית ביותר עבורך:"
+
+    send_message(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id=query.message.chat_id,
+                        text=text_message)
 
 
-
+    for _, product in products.iterrows():
+        photo_url = product['image URL']
+        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+        photo_data = requests.get(photo_url).content
+        send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id= query.message.chat_id,
+                   photo=photo_data, caption=caption_text)
 
 def main() -> None:
     """Start the bot."""
@@ -231,7 +238,6 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(handle_button_selection))
-    #application.add_handler(CallbackQueryHandler(handle_additional_buttons))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
