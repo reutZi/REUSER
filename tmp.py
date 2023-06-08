@@ -1,19 +1,3 @@
-#!/usr/bin/env python
-# pylint: disable=unused-argument, wrong-import-position
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 
 import logging
 from urllib.error import URLError
@@ -25,8 +9,6 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 
 from consts import *
 from search_crawler_results import extract_data_from_file
-
-
 
 # Enable logging
 logging.basicConfig(
@@ -62,7 +44,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
 
     for _, product in products.iterrows():
         photo_url = product['image URL']
-        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+        caption_text = f"\n<b>{LINK_URL}</b>{product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
 
         # Send the photo with the caption to the user
         await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
@@ -141,7 +123,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
             [
                 InlineKeyboardButton("מחשבים", callback_data="option8"),
                 InlineKeyboardButton("מדפסות", callback_data="option9"),
-                InlineKeyboardButton("סוללות", callback_data="option10"),
+                InlineKeyboardButton("פלאפונים", callback_data="option10"),
             ],
         ]
     elif option_selected == "category4":
@@ -191,7 +173,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         return
     elif option_selected == "option10":
         # Handle Option 10
-        send_images("סוללות", query)
+        send_images("פלאפון", query)
         return
     elif option_selected == "option11":
         # Handle Option 10
@@ -234,7 +216,7 @@ def send_images(text, query):
 
     for _, product in products.iterrows():
         photo_url = product['image URL']
-        caption_text = f"{product['name']}\n{LINK_URL} {product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+        caption_text = f"\n{LINK_URL}{product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
         photo_data = requests.get(photo_url).content
         send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id= query.message.chat_id,
                    photo=photo_data, caption=caption_text)
