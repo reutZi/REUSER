@@ -17,12 +17,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /help is issued."""
-    await update.message.reply_text("Help!")
-
-
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) -> None:
+    query = update.callback_query
     if(text == None):
         userText = update.message.text
     else:
@@ -42,25 +38,26 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE, text = None) 
         else:
             await update.message.reply_text("התוצאה הרלוונטית ביותר עבורך:")
 
+
     for _, product in products.iterrows():
         photo_url = product['image URL']
-        caption_text = f"\n<b>{LINK_URL}</b>{product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
-
-        # Send the photo with the caption to the user
-        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption_text)
+        product_url = product['link URL']
+        caption_text = f"\n[{LINK_URL}]({product_url})\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}".replace('.', '\.')
+        photo_data = requests.get(photo_url).content
+        send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id= query.message.chat_id,
+                   photo=photo_data, caption=caption_text, parse_mode='MarkdownV2')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
         rf"שלום {user.mention_html()}!",
-        reply_markup=ForceReply(selective=True),
+        reply_markup=None,
     )
 
     message_text = f"\n{O1}{O2}\n\n{O3}\n\n{O4}\n\n{O5}\n{O6}"
     await update.message.reply_text(message_text)
 
     reply = await context.bot.await_reply(update, timeout=None)
-
 
 def isCity(city_name):
     with open('cities.txt', 'r', encoding='utf-8') as file:
@@ -69,7 +66,6 @@ def isCity(city_name):
             return True
         else:
             return False
-
 
 
 async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -89,7 +85,7 @@ async def getOptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text("מקום נפלא לגור בו! 🏡🌸\nבחר את סוג המוצר שאתה מחפש:", reply_markup=reply_markup)
+    await update.message.reply_text(f"מקום נפלא לגור בו! 🏡🌸\n\nבחר את סוג המוצר שאתה מחפש:{O6}", reply_markup=reply_markup)
 
 
 async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -135,7 +131,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
             ],
         ]
     elif option_selected == "category5":
-        await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
+        await query.message.reply_text(f"נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?{O6}")
         return
     elif option_selected == "option1":
         send_images("ספה", query)
@@ -190,7 +186,7 @@ async def handle_button_selection(update: Update, context: ContextTypes.DEFAULT_
         return
 
     else:
-        await query.message.reply_text("נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?")
+        await query.message.reply_text(f"נפלא להיות ייחודי!\nאיזה מוצר אתה מחפש?{O6}")
         return
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -208,19 +204,23 @@ def send_images(text, query):
         text_message =  "לא נמצאו פריטים שתואמים לבקשה שלך, נסה שנית."
     else:
        if len(products) > 1:
-           text_message = f"נמצאו {products_length} תוצאות מתאימות. אלו התוצאות הרלוונטיות ביותר עבורך: "
+           text_message = f"נמצאו {products_length} תוצאות מתאימות. זאת התוצאה הרלוונטית ביותר עבורך: "
        else:
            text_message = "התוצאה הרלוונטית ביותר עבורך:"
 
     send_message(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id=query.message.chat_id,
                         text=text_message)
 
+
     for _, product in products.iterrows():
         photo_url = product['image URL']
-        caption_text = f"\n{LINK_URL}{product['link URL']}\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}"
+        product_url = product['link URL']
+        caption_text = f"\n[{LINK_URL}]({product_url})\n{DATE} {product['date']}\n{OWNER_ADDRESS} {product['owner address']}\n{OWNER_PHONE} {product['owner phone']}".replace(
+            '.', '\.')
         photo_data = requests.get(photo_url).content
-        send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id= query.message.chat_id,
-                   photo=photo_data, caption=caption_text)
+        send_photo(token='5980355826:AAFUvJ0oyasgvc6GxChdVjRXHWIqanesQvM', chat_id=query.message.chat_id,
+                   photo=photo_data, caption=caption_text, parse_mode='MarkdownV2')
+
 
 def main() -> None:
     """Start the bot."""
@@ -229,7 +229,6 @@ def main() -> None:
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(handle_button_selection))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
